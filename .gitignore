@@ -1,0 +1,22 @@
+# Environments / secrets
+.venv/
+.env
+
+# Python
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Pipeline data (regeneratable or too large; taxonomy stays committed)
+data/raw/*
+data/parsed/*
+data/extracted/*
+!data/raw/.gitkeep
+!data/parsed/.gitkeep
+!data/extracted/.gitkeep
+
+# Notebooks
+.ipynb_checkpoints/
