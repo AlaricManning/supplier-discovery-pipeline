@@ -1,1 +1,46 @@
 # supplier-discovery-pipeline
+
+A data pipeline that ingests unstructured manufacturer documents (SEC 10-K excerpts, capability statements as PDF/PPTX), extracts structured supplier profiles with an LLM, normalizes them against a real taxonomy (NAICS, certifications), and supports hybrid supplier matching — hard filters on structured fields plus semantic vector similarity — against natural-language buyer requirements, with confidence-gated human review and a full audit trail back to source documents.
+
+Domain: US steel manufacturers.
+
+## How it works
+
+1. **Ingestion** — [Docling](https://github.com/docling-project/docling) converts each source document (10-K HTML from SEC EDGAR, PDF and PPTX capability statements) into markdown plus lossless JSON, persisted to `data/parsed/`. This parsed output is the pipeline's source of truth: structured fields and embeddings are both derived views of it, regeneratable if the schema or embedding model changes.
+2. **Extraction** — an LLM extracts a structured supplier profile (processes, products, certifications, locations, ...) from the parsed markdown against a Pydantic schema, with a confidence score per field. Missing information is `null`, never guessed. Audit metadata (source document ID, model version) is stamped by the pipeline, not produced by the LLM.
+3. **Normalization** — extracted strings are matched against canonical taxonomies (NAICS codes, certification lists, US state codes) with deterministic fuzzy matching first; an LLM adjudicates only ambiguous mid-range cases, for auditability.
+4. **Indexing** — the full parsed text (not the extracted JSON) is chunked and embedded into a vector index, preserving nuance the schema can't capture.
+5. **Matching** — a natural-language buyer requirement is answered with hybrid search: hard filters on the normalized structured fields, vector similarity for fuzzy fit, and a weighted re-rank. Hard constraints never rely on vector similarity alone.
+6. **Review** — low-confidence fields and matches are flagged for human review, with a full audit trail from every result back to its parsed document and original file.
+
+## Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+cp .env.example .env   # fill in keys; never committed
+```
+
+## Development
+
+```bash
+ruff check .
+pytest
+```
+
+## Layout
+
+```
+src/supplier_discovery/
+  ingestion/        # Docling conversion (raw docs -> persisted parsed artifacts)
+  extraction/       # LLM extraction + Pydantic schema, per-field confidence
+  normalization/    # taxonomy + rapidfuzz matching, LLM fallback for ambiguous cases
+  indexing/         # chunking + embeddings + vector index
+  matching/         # hybrid query/ranking logic
+data/
+  raw/              # original source docs (gitignored)
+  parsed/           # persisted Docling output (gitignored)
+  extracted/        # LLM extraction output (gitignored)
+  taxonomy/         # NAICS csv, certifications list (committed)
+```
