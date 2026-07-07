@@ -31,6 +31,14 @@ python -m supplier_discovery.ingestion.edgar --companies us-steel commercial-met
 
 Downloads each company's latest 10-K from the official SEC EDGAR API as original HTML into `data/raw/`, with a `.meta.json` provenance sidecar (CIK, accession number, source URL, fetch time) per filing. Requires `EDGAR_CONTACT_EMAIL` in `.env` — the SEC requires a User-Agent header identifying the requester.
 
+## Parsing documents
+
+```bash
+python -m supplier_discovery.ingestion.parse   # data/raw/ -> data/parsed/
+```
+
+Converts every supported document in `data/raw/` (HTML, PDF, PPTX) with [Docling](https://github.com/docling-project/docling) into four persisted artifacts per doc in `data/parsed/`: full markdown, lossless Docling JSON, an excerpt (Item 1 Business + Item 2 Properties for 10-Ks; full text for anything else), and a `.meta.json` recording provenance, Docling version, and which excerpt strategy applied.
+
 ## Development
 
 ```bash
