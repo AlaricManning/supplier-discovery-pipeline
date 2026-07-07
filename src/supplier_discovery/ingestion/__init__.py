@@ -1,1 +1,1 @@
-"""Docling conversion of raw source documents into persisted parsed artifacts."""
+"""Acquisition of raw source documents and Docling conversion into persisted parsed artifacts."""
