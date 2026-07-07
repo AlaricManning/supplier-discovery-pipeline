@@ -22,6 +22,15 @@ pip install -e ".[dev]"
 cp .env.example .env   # fill in keys; never committed
 ```
 
+## Fetching source documents
+
+```bash
+python -m supplier_discovery.ingestion.edgar                    # Nucor, Steel Dynamics, Cleveland-Cliffs
+python -m supplier_discovery.ingestion.edgar --companies us-steel commercial-metals worthington
+```
+
+Downloads each company's latest 10-K from the official SEC EDGAR API as original HTML into `data/raw/`, with a `.meta.json` provenance sidecar (CIK, accession number, source URL, fetch time) per filing. Requires `EDGAR_CONTACT_EMAIL` in `.env` — the SEC requires a User-Agent header identifying the requester.
+
 ## Development
 
 ```bash
